@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Cyber War</title>
+<style>
+body{background:#0b0f14;color:white;text-align:center;font-family:Arial}
+canvas{background:#151a21;display:block;margin:auto;border:1px solid #333}
+button{margin:5px;padding:8px}
+.unit{display:inline-block;padding:6px;background:#222;margin:4px;border-radius:6px;cursor:pointer}
+.mal{color:#ff5555}
+.av{color:#55aaff}
+.hpbar{height:4px;background:green;margin-top:2px}
+</style>
+</head>
+<body>
+
+<h2>Cyber War</h2>
+
+<input id="ip" placeholder="Enter LAN IP">
+<button onclick="connect()">Join</button>
+
+<div id="ui" style="display:none">
+  <div id="units"></div>
+</div>
+
+<canvas id="c" width="900" height="400"></canvas>
+
+<script>
+let ws,state,id;
+const c=document.getElementById("c");
+const x=c.getContext("2d");
+
+const units=[
+ {n:"virus",c:"mal"},{n:"trojan",c:"mal"},{n:"worm",c:"mal"},
+ {n:"scanner",c:"av"},{n:"firewall",c:"av"},{n:"ids",c:"av"}
+];
+
+function connect(){
+ ws=new WebSocket(`wss://${ip.value}:8001`);
+ ws.onmessage=e=>{
+  let m=JSON.parse(e.data);
+  if(m.type=="id")id=m.id;
+  if(m.type=="state")state=m.state;
+ };
+ document.getElementById("ui").style.display="block";
+}
+
+function spawn(u){ws.send(JSON.stringify({type:"spawn",unit:u}));}
+
+function draw(){
+ requestAnimationFrame(draw);
+ if(!state)return;
+ x.clearRect(0,0,900,400);
+
+ state.players.forEach((p,i)=>{
+  p.units.forEach(u=>{
+   x.fillStyle=i==0?"red":"blue";
+   x.fillRect(u.x,300,20,20);
+
+   // HP BAR
+   x.fillStyle="green";
+   x.fillRect(u.x,290,u.hp/2,3);
+  });
+ });
+}
+
+draw();
+</script>
+
+</body>
+</html>
