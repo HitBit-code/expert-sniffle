@@ -1,72 +1,425 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Cyber War</title>
-<style>
-body{background:#0b0f14;color:white;text-align:center;font-family:Arial}
-canvas{background:#151a21;display:block;margin:auto;border:1px solid #333}
-button{margin:5px;padding:8px}
-.unit{display:inline-block;padding:6px;background:#222;margin:4px;border-radius:6px;cursor:pointer}
-.mal{color:#ff5555}
-.av{color:#55aaff}
-.hpbar{height:4px;background:green;margin-top:2px}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Type‑O | Sharpen Your Speed</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ── RESET & BASE ─────────────────────────────────── */
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      font-family:'Overpass', sans-serif;
+      background:#0a0a0f;
+      color:#e0e0e0;
+      line-height:1.6;
+      overflow-x:hidden;
+    }
+    a { color:inherit; text-decoration:none; }
+    img { max-width:100%; display:block; }
+
+    /* ── UTILITY ──────────────────────────────────────── */
+    .container { width:90%; max-width:1200px; margin:0 auto; }
+    .neon      { color:#39ff14; }
+    .btn {
+      display:inline-block; padding:14px 36px;
+      background:#39ff14; color:#0a0a0f;
+      font-weight:700; font-size:1rem;
+      border:none; border-radius:6px; cursor:pointer;
+      transition:background .2s, box-shadow .2s;
+      text-transform:uppercase; letter-spacing:.08em;
+    }
+    .btn:hover {
+      background:#2ecc0f;
+      box-shadow:0 0 18px rgba(57,255,20,.45);
+    }
+    .btn-outline {
+      background:transparent; color:#39ff14;
+      border:2px solid #39ff14;
+    }
+    .btn-outline:hover {
+      background:#39ff14; color:#0a0a0f;
+    }
+    .section-title {
+      font-size:clamp(1.6rem,4vw,2.4rem);
+      font-weight:900; text-align:center;
+      margin-bottom:12px; text-transform:uppercase;
+      letter-spacing:.05em;
+    }
+    .section-sub {
+      text-align:center; color:#999;
+      max-width:560px; margin:0 auto 48px;
+      font-size:.95rem;
+    }
+
+    /* ── NAV ──────────────────────────────────────────── */
+    .nav {
+      position:fixed; top:0; left:0; width:100%;
+      background:rgba(10,10,15,.88);
+      backdrop-filter:blur(12px);
+      z-index:100; border-bottom:1px solid #1a1a24;
+    }
+    .nav .container {
+      display:flex; align-items:center;
+      justify-content:space-between;
+      height:64px;
+    }
+    .nav-logo {
+      font-size:1.5rem; font-weight:900;
+      letter-spacing:.06em; text-transform:uppercase;
+    }
+    .nav-logo span { color:#39ff14; }
+    .nav-links { display:flex; gap:32px; list-style:none; }
+    .nav-links a {
+      font-weight:600; font-size:.88rem;
+      text-transform:uppercase; letter-spacing:.06em;
+      transition:color .2s;
+    }
+    .nav-links a:hover { color:#39ff14; }
+    .nav-cta { padding:10px 24px; font-size:.82rem; }
+    .nav-toggle {
+      display:none; background:none; border:none;
+      color:#e0e0e0; font-size:1.6rem; cursor:pointer;
+    }
+
+    /* ── HERO ─────────────────────────────────────────── */
+    .hero {
+      min-height:100vh; display:flex; align-items:center;
+      justify-content:center; text-align:center;
+      padding:120px 20px 80px;
+      position:relative; overflow:hidden;
+    }
+    .hero::before {
+      content:''; position:absolute; inset:0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 40%,
+          rgba(57,255,20,.06) 0%, transparent 70%);
+      pointer-events:none;
+    }
+    .hero-badge {
+      display:inline-block; padding:6px 18px;
+      border:1px solid #39ff1444; border-radius:999px;
+      font-size:.78rem; font-weight:600; color:#39ff14;
+      text-transform:uppercase; letter-spacing:.1em;
+      margin-bottom:24px;
+    }
+    .hero h1 {
+      font-size:clamp(2.4rem,7vw,4.8rem);
+      font-weight:900; line-height:1.08;
+      text-transform:uppercase; letter-spacing:.03em;
+      margin-bottom:20px;
+    }
+    .hero p {
+      font-size:clamp(1rem,2.2vw,1.25rem);
+      color:#aaa; max-width:560px; margin:0 auto 36px;
+    }
+    .hero-buttons { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
+
+    /* typing cursor */
+    .typed-cursor {
+      display:inline-block; width:3px; height:1em;
+      background:#39ff14; margin-left:4px;
+      animation:blink .7s step-end infinite;
+      vertical-align:text-bottom;
+    }
+    @keyframes blink { 50%{opacity:0} }
+
+    /* grid decoration */
+    .hero-grid {
+      position:absolute; inset:0; pointer-events:none;
+      background-image:
+        linear-gradient(rgba(57,255,20,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(57,255,20,.04) 1px, transparent 1px);
+      background-size:60px 60px;
+    }
+
+    /* ── GAMES GRID ───────────────────────────────────── */
+    .games { padding:100px 0; }
+    .games-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(300px,1fr));
+      gap:24px;
+    }
+    .game-card {
+      background:#12121c; border:1px solid #1e1e2e;
+      border-radius:12px; padding:36px 28px;
+      transition:border-color .25s, transform .25s, box-shadow .25s;
+      position:relative; overflow:hidden;
+    }
+    .game-card:hover {
+      border-color:#39ff1466;
+      transform:translateY(-4px);
+      box-shadow:0 8px 32px rgba(57,255,20,.08);
+    }
+    .game-card .icon {
+      width:52px; height:52px; border-radius:10px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.5rem; margin-bottom:20px;
+      background:rgba(57,255,20,.1); color:#39ff14;
+    }
+    .game-card h3 {
+      font-size:1.15rem; font-weight:700;
+      margin-bottom:8px; text-transform:uppercase;
+      letter-spacing:.04em;
+    }
+    .game-card p {
+      font-size:.88rem; color:#888; line-height:1.55;
+      margin-bottom:20px;
+    }
+    .game-card .tag {
+      display:inline-block; padding:4px 12px;
+      border-radius:999px; font-size:.72rem;
+      font-weight:700; text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+    .tag-easy   { background:#39ff1418; color:#39ff14; }
+    .tag-medium { background:#fbbf2418; color:#fbbf24; }
+    .tag-hard   { background:#ef444418; color:#ef4444; }
+
+    /* ── FEATURES ─────────────────────────────────────── */
+    .features { padding:100px 0; background:#0d0d14; }
+    .features-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+      gap:32px;
+    }
+    .feature {
+      text-align:center; padding:32px 20px;
+    }
+    .feature .f-icon {
+      width:56px; height:56px; margin:0 auto 18px;
+      border-radius:50%; display:flex;
+      align-items:center; justify-content:center;
+      font-size:1.4rem;
+      background:rgba(57,255,20,.08); color:#39ff14;
+      border:1px solid #39ff1422;
+    }
+    .feature h4 {
+      font-weight:700; margin-bottom:6px;
+      text-transform:uppercase; font-size:.95rem;
+      letter-spacing:.04em;
+    }
+    .feature p { font-size:.85rem; color:#888; }
+
+    /* ── CTA BANNER ───────────────────────────────────── */
+    .cta-banner {
+      padding:80px 0; text-align:center;
+    }
+    .cta-box {
+      background:linear-gradient(135deg,#151520,#1a1a28);
+      border:1px solid #1e1e2e; border-radius:16px;
+      padding:60px 40px;
+    }
+    .cta-box h2 {
+      font-size:clamp(1.4rem,3.5vw,2.2rem);
+      font-weight:900; margin-bottom:12px;
+      text-transform:uppercase; letter-spacing:.04em;
+    }
+    .cta-box p { color:#888; margin-bottom:32px; max-width:480px; margin-inline:auto; }
+
+    /* ── FOOTER ────────────────────────────────────────── */
+    .footer {
+      padding:48px 0 32px;
+      border-top:1px solid #1a1a24;
+      text-align:center; color:#555; font-size:.82rem;
+    }
+    .footer-links { display:flex; justify-content:center; gap:24px; margin-bottom:16px; list-style:none; }
+    .footer-links a { transition:color .2s; }
+    .footer-links a:hover { color:#39ff14; }
+
+    /* ── RESPONSIVE ────────────────────────────────────── */
+    @media(max-width:768px){
+      .nav-links, .nav-cta { display:none; }
+      .nav-toggle { display:block; }
+      .nav.open .nav-links {
+        display:flex; flex-direction:column;
+        position:absolute; top:64px; left:0; width:100%;
+        background:rgba(10,10,15,.96); padding:24px 0;
+        align-items:center; gap:20px;
+        border-bottom:1px solid #1a1a24;
+      }
+      .nav.open .nav-cta {
+        display:inline-block; margin-top:8px;
+        position:absolute; top:calc(64px + 180px);
+        left:50%; transform:translateX(-50%);
+      }
+      .games-grid { grid-template-columns:1fr; }
+    }
+  </style>
 </head>
 <body>
 
-<h2>Cyber War</h2>
+<!-- ════════════ NAV ════════════ -->
+<nav class="nav" id="nav">
+  <div class="container">
+    <div class="nav-logo">Type<span>‑O</span></div>
+    <ul class="nav-links">
+      <li><a href="#games">Games</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#start">Get&nbsp;Started</a></li>
+    </ul>
+    <a href="#start" class="btn nav-cta">Play Now</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
+  </div>
+</nav>
 
-<input id="ip" placeholder="Enter LAN IP">
-<button onclick="connect()">Join</button>
+<!-- ════════════ HERO ════════════ -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="container" style="position:relative;z-index:1;">
+    <div class="hero-badge">⌨ Free &amp; Open Typing Trainer</div>
+    <h1>
+      Master the&nbsp;<br class="hide-mobile"/>
+      <span class="neon" id="typed"></span><span class="typed-cursor"></span>
+    </h1>
+    <p>Track your WPM, crush accuracy records, and climb the ranks — all from your browser.</p>
+    <div class="hero-buttons">
+      <a href="#games" class="btn">Start Typing</a>
+      <a href="#features" class="btn btn-outline">See Features</a>
+    </div>
+  </div>
+</section>
 
-<div id="ui" style="display:none">
-  <div id="units"></div>
-</div>
+<!-- ════════════ GAMES GRID ════════════ -->
+<section class="games" id="games">
+  <div class="container">
+    <h2 class="section-title">Choose Your <span class="neon">Mode</span></h2>
+    <p class="section-sub">Six ways to train — from casual warm-ups to brutal endurance runs.</p>
 
-<canvas id="c" width="900" height="400"></canvas>
+    <div class="games-grid">
 
+      <!-- Card 1 -->
+      <div class="game-card">
+        <div class="icon">⏱</div>
+        <h3>Speed Sprint</h3>
+        <p>Race the clock in a 60-second burst. Pure speed, pure pressure.</p>
+        <span class="tag tag-easy">Easy</span>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="game-card">
+        <div class="icon">🎯</div>
+        <h3>Precision Drill</h3>
+        <p>Every mistype costs you. Focus on accuracy to clear each stage.</p>
+        <span class="tag tag-medium">Medium</span>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="game-card">
+        <div class="icon">📝</div>
+        <h3>Quote Marathon</h3>
+        <p>Type famous quotes back-to-back and track your consistency over time.</p>
+        <span class="tag tag-easy">Easy</span>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="game-card">
+        <div class="icon">🔥</div>
+        <h3>Survival</h3>
+        <p>Words keep falling — miss three and it's game over. How long can you last?</p>
+        <span class="tag tag-hard">Hard</span>
+      </div>
+
+      <!-- Card 5 -->
+      <div class="game-card">
+        <div class="icon">🏁</div>
+        <h3>Multiplayer Race</h3>
+        <p>Challenge a friend or match with a random opponent in real-time.</p>
+        <span class="tag tag-medium">Medium</span>
+      </div>
+
+      <!-- Card 6 -->
+      <div class="game-card">
+        <div class="icon">🧪</div>
+        <h3>Code Mode</h3>
+        <p>Type real code snippets — brackets, semicolons, and all.</p>
+        <span class="tag tag-hard">Hard</span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ FEATURES ════════════ -->
+<section class="features" id="features">
+  <div class="container">
+    <h2 class="section-title">Why <span class="neon">Type‑O</span></h2>
+    <p class="section-sub">Built for typists who want real feedback, not gimmicks.</p>
+
+    <div class="features-grid">
+      <div class="feature">
+        <div class="f-icon">📊</div>
+        <h4>Live Analytics</h4>
+        <p>WPM, accuracy, and error heatmaps updated after every session.</p>
+      </div>
+      <div class="feature">
+        <div class="f-icon">🏆</div>
+        <h4>Rank Ladder</h4>
+        <p>Climb from Bronze to Grandmaster across a segmented progression system.</p>
+      </div>
+      <div class="feature">
+        <div class="f-icon">📱</div>
+        <h4>Fully Responsive</h4>
+        <p>Practice on desktop, tablet, or phone — your stats sync everywhere.</p>
+      </div>
+      <div class="feature">
+        <div class="f-icon">🌙</div>
+        <h4>Dark-First Design</h4>
+        <p>Easy on the eyes for late-night grinding sessions.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ CTA BANNER ════════════ -->
+<section class="cta-banner" id="start">
+  <div class="container">
+    <div class="cta-box">
+      <h2>Ready to <span class="neon">Type</span>?</h2>
+      <p>No sign-up required. Jump in, pick a mode, and see where you stand.</p>
+      <a href="#games" class="btn">Play Now — It's Free</a>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ FOOTER ════════════ -->
+<footer class="footer">
+  <div class="container">
+    <ul class="footer-links">
+      <li><a href="#games">Games</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#">Leaderboard</a></li>
+      <li><a href="#">GitHub</a></li>
+    </ul>
+    <p>&copy; 2026 Type‑O &middot; Built for speed.</p>
+  </div>
+</footer>
+
+<!-- ════════════ JS ════════════ -->
 <script>
-let ws,state,id;
-const c=document.getElementById("c");
-const x=c.getContext("2d");
+  /* ── mobile nav toggle ── */
+  document.getElementById('navToggle').addEventListener('click', () =>
+    document.getElementById('nav').classList.toggle('open'));
 
-const units=[
- {n:"virus",c:"mal"},{n:"trojan",c:"mal"},{n:"worm",c:"mal"},
- {n:"scanner",c:"av"},{n:"firewall",c:"av"},{n:"ids",c:"av"}
-];
-
-function connect(){
- ws=new WebSocket(`wss://${ip.value}:8001`);
- ws.onmessage=e=>{
-  let m=JSON.parse(e.data);
-  if(m.type=="id")id=m.id;
-  if(m.type=="state")state=m.state;
- };
- document.getElementById("ui").style.display="block";
-}
-
-function spawn(u){ws.send(JSON.stringify({type:"spawn",unit:u}));}
-
-function draw(){
- requestAnimationFrame(draw);
- if(!state)return;
- x.clearRect(0,0,900,400);
-
- state.players.forEach((p,i)=>{
-  p.units.forEach(u=>{
-   x.fillStyle=i==0?"red":"blue";
-   x.fillRect(u.x,300,20,20);
-
-   // HP BAR
-   x.fillStyle="green";
-   x.fillRect(u.x,290,u.hp/2,3);
-  });
- });
-}
-
-draw();
+  /* ── typing animation ── */
+  const words = ['Keyboard.', 'Speed.', 'Accuracy.', 'Code.', 'Rhythm.'];
+  let wi = 0, ci = 0, deleting = false;
+  const el = document.getElementById('typed');
+  function tick() {
+    const word = words[wi];
+    el.textContent = word.substring(0, ci);
+    if (!deleting) {
+      ci++;
+      if (ci > word.length) { deleting = true; setTimeout(tick, 1600); return; }
+    } else {
+      ci--;
+      if (ci < 0) { ci = 0; deleting = false; wi = (wi + 1) % words.length; }
+    }
+    setTimeout(tick, deleting ? 40 : 100);
+  }
+  tick();
 </script>
-
 </body>
 </html>
